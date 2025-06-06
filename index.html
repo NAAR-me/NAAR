@@ -263,7 +263,7 @@
   #admin-panel {
     max-width: 720px;
     margin: 3rem auto 6rem auto;
-    background: var(--accent-light);
+    background: var(--violet-card, #f3eafd);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     padding: 2rem 2.5rem;
@@ -271,7 +271,7 @@
     display: none;
   }
   #admin-panel h3 {
-    color: var(--purple);
+    color: var(--accent-light);
     margin-top: 0;
     margin-bottom: 1rem;
   }
@@ -295,8 +295,8 @@
   }
   #admin-panel button {
     margin-top: 1.5rem;
-    background: var(--button-bg, var(--purple));
-    color: var(--button-text, #fff);
+    background: var(--button-bg);
+    color: var(--button-text);
     border: none;
     padding: 0.7rem 1.5rem;
     border-radius: 16px;
@@ -305,7 +305,7 @@
     transition: background 0.3s;
   }
   #admin-panel button:hover {
-    background: var(--button-hover-bg, #553d82);
+    background: var(--button-hover-bg);
   }
   /* Responsive */
   @media (max-width: 600px) {
@@ -366,7 +366,7 @@
   <footer role="navigation" aria-label="Main navigation">
     <button id="nav-home" class="active" aria-current="page">Home</button>
     <button id="nav-blog">Blog</button>
-    <!-- Login and Edit buttons added dynamically -->
+    <button id="nav-edit">Edit</button>
   </footer>
 
   <button id="dark-mode-toggle" aria-label="Toggle Dark Mode" title="Toggle Dark Mode">
@@ -389,6 +389,36 @@
   </button>
 
 <script>
+  // Elements
+  const introSection = document.getElementById('intro');
+  const blogSection = document.getElementById('blog-section');
+  const postView = document.getElementById('post-view');
+  const postTitle = document.getElementById('post-title');
+  const postDate = document.getElementById('post-date');
+  const postContent = document.getElementById('post-content');
+  const postCloseBtn = postView.querySelector('.close-btn');
+
+  const navHome = document.getElementById('nav-home');
+  const navBlog = document.getElementById('nav-blog');
+  const navEdit = document.getElementById('nav-edit');
+  const footerButtons = [navHome, navBlog, navEdit];
+
+  const profileImg = document.getElementById('profile-img');
+  const siteName = document.getElementById('site-name');
+  const introText = document.getElementById('intro-text');
+
+  const adminPanel = document.getElementById('admin-panel');
+  const profileImgInput = document.getElementById('profile-img-input');
+  const siteNameInput = document.getElementById('site-name-input');
+  const introTextInput = document.getElementById('intro-text-input');
+  const blogEditorList = document.getElementById('blog-editor-list');
+  const addPostBtn = document.getElementById('add-post-btn');
+  const saveBtn = document.getElementById('save-btn');
+
+  const darkModeToggle = document.getElementById('dark-mode-toggle');
+  const iconSun = document.getElementById('icon-sun');
+  const iconMoon = document.getElementById('icon-moon');
+
   // Blog data
   let blogPosts = [
     {
@@ -429,35 +459,7 @@
     }
   ];
 
-  // Elements references
-  const introSection = document.getElementById('intro');
-  const blogSection = document.getElementById('blog-section');
-  const postView = document.getElementById('post-view');
-  const postTitle = document.getElementById('post-title');
-  const postDate = document.getElementById('post-date');
-  const postContent = document.getElementById('post-content');
-  const postCloseBtn = postView.querySelector('.close-btn');
-
-  const navHome = document.getElementById('nav-home');
-  const navBlog = document.getElementById('nav-blog');
-
-  const profileImg = document.getElementById('profile-img');
-  const siteName = document.getElementById('site-name');
-  const introText = document.getElementById('intro-text');
-
-  const adminPanel = document.getElementById('admin-panel');
-  const profileImgInput = document.getElementById('profile-img-input');
-  const siteNameInput = document.getElementById('site-name-input');
-  const introTextInput = document.getElementById('intro-text-input');
-  const blogEditorList = document.getElementById('blog-editor-list');
-  const addPostBtn = document.getElementById('add-post-btn');
-  const saveBtn = document.getElementById('save-btn');
-
-  const darkModeToggle = document.getElementById('dark-mode-toggle');
-  const iconSun = document.getElementById('icon-sun');
-  const iconMoon = document.getElementById('icon-moon');
-
-  // Render blog list and admin editor
+  // Render blog list
   function renderBlogList() {
     blogEditorList.innerHTML = '';
     const blogList = document.getElementById('blog-list');
@@ -480,7 +482,7 @@
 
       // Admin editor UI
       const div = document.createElement('div');
-      div.style = "margin-bottom:1.5rem; padding:1rem; border:1px solid var(--accent-light); border-radius:20px; background: var(--accent-light, #f3eafd);";
+      div.style = "margin-bottom:1.5rem; padding:1rem; border:1px solid var(--accent-light); border-radius:20px; background: var(--violet-card, #f3eafd);";
       div.innerHTML = `
         <label>Title</label>
         <input type="text" data-index="${idx}" data-field="title" value="${post.title}" />
@@ -549,17 +551,22 @@
     adminPanel.style.display = 'none';
     setActiveNav(navBlog);
   };
+  navEdit.onclick = () => {
+    introSection.style.display = 'none';
+    blogSection.style.display = 'none';
+    postView.style.display = 'none';
+    adminPanel.style.display = 'block';
+    setActiveNav(navEdit);
+  };
 
   function setActiveNav(activeBtn) {
-    [navHome, navBlog, document.getElementById('nav-edit'), document.getElementById('nav-login')].forEach(btn => {
-      if(btn) {
-        if(btn === activeBtn) {
-          btn.classList.add('active');
-          btn.setAttribute('aria-current','page');
-        } else {
-          btn.classList.remove('active');
-          btn.removeAttribute('aria-current');
-        }
+    footerButtons.forEach(btn => {
+      if(btn === activeBtn) {
+        btn.classList.add('active');
+        btn.setAttribute('aria-current','page');
+      } else {
+        btn.classList.remove('active');
+        btn.removeAttribute('aria-current');
       }
     });
   }
@@ -581,90 +588,6 @@
       content: '<p>Write your blog content here...</p>'
     });
     renderBlogList();
-  };
-
-  // --- ADMIN LOGIN PROTECTION ---
-  const ADMIN_PASSWORD = "NewIslandhereIam@45678";
-
-  // Remove old Edit button if it exists
-  let navEdit = document.getElementById("nav-edit");
-  if(navEdit) navEdit.remove();
-
-  const footer = document.querySelector("footer");
-  adminPanel.style.display = "none"; // Hide admin panel initially
-
-  // Create Login and Edit buttons dynamically
-  const loginBtn = document.createElement("button");
-  loginBtn.id = "nav-login";
-  loginBtn.textContent = "Login";
-  loginBtn.style.fontWeight = "600";
-  footer.appendChild(loginBtn);
-
-  const editBtn = document.createElement("button");
-  editBtn.id = "nav-edit";
-  editBtn.textContent = "Edit";
-  editBtn.style.fontWeight = "600";
-  editBtn.style.display = "none"; // Hidden initially
-  footer.appendChild(editBtn);
-
-  // Check login state from localStorage
-  function isLoggedIn() {
-    return localStorage.getItem("isAdmin") === "true";
-  }
-
-  // Update UI based on login state
-  function updateUIForLogin() {
-    if(isLoggedIn()) {
-      loginBtn.style.display = "none";
-      editBtn.style.display = "inline-block";
-    } else {
-      loginBtn.style.display = "inline-block";
-      editBtn.style.display = "none";
-      adminPanel.style.display = "none";
-      document.getElementById('intro').style.display = 'flex';
-      document.getElementById('blog-section').style.display = 'none';
-      document.getElementById('post-view').style.display = 'none';
-    }
-  }
-
-  // Login button click handler
-  loginBtn.onclick = () => {
-    const pwd = prompt("Enter admin password:");
-    if(pwd === ADMIN_PASSWORD) {
-      localStorage.setItem("isAdmin", "true");
-      updateUIForLogin();
-      alert("Login successful! You can now access the Edit panel.");
-      editBtn.click();
-    } else if(pwd !== null) {
-      alert("Incorrect password.");
-    }
-  };
-
-  // Edit button click handler
-  editBtn.onclick = () => {
-    document.getElementById('intro').style.display = 'none';
-    document.getElementById('blog-section').style.display = 'none';
-    document.getElementById('post-view').style.display = 'none';
-    adminPanel.style.display = 'block';
-    setActiveNav(editBtn);
-  };
-
-  // Add a Logout button inside admin panel for convenience
-  const logoutBtn = document.createElement("button");
-  logoutBtn.textContent = "Logout";
-  logoutBtn.style.background = "#a94f3d";
-  logoutBtn.style.color = "#fff";
-  logoutBtn.style.border = "none";
-  logoutBtn.style.padding = "0.5em 1em";
-  logoutBtn.style.borderRadius = "12px";
-  logoutBtn.style.marginTop = "1rem";
-  logoutBtn.style.cursor = "pointer";
-  adminPanel.appendChild(logoutBtn);
-
-  logoutBtn.onclick = () => {
-    localStorage.removeItem("isAdmin");
-    updateUIForLogin();
-    alert("Logged out.");
   };
 
   // Dark mode toggle
@@ -689,7 +612,6 @@
     introTextInput.value = introText.textContent;
     renderBlogList();
     setActiveNav(navHome);
-    updateUIForLogin();
     updateDarkModeIcon();
   }
   init();
